@@ -5,7 +5,9 @@ export async function createAnimal(animal: Animal): Promise<Animal> {
   const pool = await getPool();
 
   const [result] = await pool.execute(
-    "INSERT INTO animal (name, breed, species, site, intake_date, color, location_found, description, size, gender, spayed_or_neutered, available_for_adoption, housetrained, declawed, age) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    `INSERT INTO animal 
+      (name, breed, species, site, intake_date, color, location_found, description, size, gender, spayed_or_neutered, available_for_adoption, housetrained, declawed, age) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       animal.name,
       animal.breed ?? null,
@@ -30,9 +32,37 @@ export async function createAnimal(animal: Animal): Promise<Animal> {
   return { id: insertId, ...animalWithoutId };
 }
 
-export async function getAnimals(): Promise<Animal[]> {
+export async function getAnimals(limit = 10, page = 1): Promise<{ results: Animal[]; page: number; limit: number }> {
   const pool = await getPool();
+  const offset = (page - 1) * limit;
 
-  const [rows] = await pool.query("SELECT * FROM animal");
-  return rows as Animal[];
+  const [rows] = await pool.query(
+    "SELECT * FROM animal LIMIT ? OFFSET ?",
+    [limit, offset]
+  );
+
+  return { results: rows as Animal[], page, limit };
+}
+
+export async function getAnimalById(id: number): Promise<Animal | null> {
+  const pool = await getPool();
+  const [rows] = await pool.query("SELECT * FROM animal WHERE id = ?", [id]);
+  const animals = rows as Animal[];
+  return animals[0] ?? null;
+}
+
+export async function updateAnimal(id: number, data: Partial<Animal>): Promise<void> {
+  const pool = await getPool();
+  const fields = Object.keys(data);
+  const values = Object.values(data);
+
+  if (fields.length === 0) return;
+
+  const setString = fields.map((f) => `${f} = ?`).join(", ");
+  await pool.execute(`UPDATE animal SET ${setString} WHERE id = ?`, [...values, id]);
+}
+
+export async function deleteAnimal(id: number): Promise<void> {
+  const pool = await getPool();
+  await pool.execute("DELETE FROM animal WHERE id = ?", [id]);
 }
