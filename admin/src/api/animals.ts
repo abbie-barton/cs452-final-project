@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Animal } from "../../../shared/dist/types/Animal";
+import { Animal } from "../types/Animal";
 
 const API_BASE = "https://gxxmq0jkd0.execute-api.us-east-2.amazonaws.com"; 
 

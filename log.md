@@ -6,5 +6,7 @@
 | 11/29/25    | 3.5   | AWS integration finished for lambda and API gateway, CDK deployment working, connected to local MySQL database |
 | 11/30/25    | 4     | RDS setup & integration, creating RDS tables, starting building frontend |
 | 12/01/25    | 2     | CDK (Wix) integration research, CRUD animals API, starting to integrate APIs into frontend |
-| 12/02/25    | 1.5   | CRUD animals API, integrate APIs into frontend, edit animals page |
-## Total Hours: 12.5
+| 12/02/25    | 2     | CRUD animals API, integrate APIs into frontend, edit animals page |
+| 12/03/25    | 1.25  | S3 API, integration |
+( pagination on table, S3 image view on edit )
+## Total Hours: 15.75

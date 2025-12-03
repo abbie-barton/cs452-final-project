@@ -1,5 +1,6 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { getAnimalById, getAnimals } from "../../services/animalService";
+import { getAnimalImages } from "../../services/animalImagesService";
 
 export const main: APIGatewayProxyHandlerV2 = async (event) => {
   try {
@@ -12,7 +13,12 @@ export const main: APIGatewayProxyHandlerV2 = async (event) => {
       if (!animal) {
         return { statusCode: 404, body: "Animal not found" };
       }
-      return { statusCode: 200, body: JSON.stringify(animal) };
+      const images = await getAnimalImages(id);
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ ...animal, images })
+      };
     } else {
       const animals = await getAnimals();
       return { statusCode: 200, body: JSON.stringify(animals) };
