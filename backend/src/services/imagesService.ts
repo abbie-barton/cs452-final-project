@@ -1,8 +1,8 @@
 // lib/services/uploadAnimalImagesService.ts
 
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import { createAnimalImages } from "./animalImagesService";
+import { createAnimalImages, deleteAnimalImagesByUrls } from "./animalImagesService";
 
 const s3 = new S3Client({ region: process.env.AWS_REGION });
 
@@ -27,6 +27,7 @@ export async function uploadAnimalImages(
       Key: key,
       Body: buffer,
       ContentType: file.contentType,
+      ACL: "public-read"
     });
 
     await s3.send(command);
@@ -38,4 +39,38 @@ export async function uploadAnimalImages(
   await createAnimalImages(animalId, uploadedUrls);
 
   return uploadedUrls;
+}
+
+export async function deleteAnimalImages(
+  bucketName: string,
+  imageUrls: string[]
+) {
+  if (!bucketName) {
+    throw new Error("Missing bucket name");
+  }
+
+  if (!imageUrls || imageUrls.length === 0) {
+    return { deleted: [] };
+  }
+
+  const deletedKeys: string[] = [];
+
+  for (const url of imageUrls) {
+    // Convert URL → key
+    const key = url.split(`.amazonaws.com/`)[1];
+
+    const command = new DeleteObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+    });
+
+    await s3.send(command);
+
+    deletedKeys.push(key);
+  }
+
+  // Remove records from DB
+  await deleteAnimalImagesByUrls(imageUrls);
+
+  return { deleted: deletedKeys };
 }

@@ -7,6 +7,7 @@ import {
   Group,
   Badge,
   ActionIcon,
+  Pagination,
   LoadingOverlay,
 } from "@mantine/core";
 import { IconTrash, IconEdit, IconPlus } from "@tabler/icons-react";
@@ -19,6 +20,8 @@ export default function AnimalsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [animals, setAnimals] = useState<Animal[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -27,9 +30,9 @@ export default function AnimalsPage() {
     const fetchAnimals = async () => {
       setLoading(true);
       try {
-        const data = await getAnimals();
-        setAnimals(data);
-        console.log(data);
+        const { animals, totalPages } = await getAnimals(page);
+        setAnimals(animals);
+        setTotalPages(totalPages);
       } catch (err) {
         console.error("Error fetching animals:", err);
       } finally {
@@ -38,7 +41,7 @@ export default function AnimalsPage() {
     };
 
     fetchAnimals();
-  }, []);
+  }, [page]);
 
   useEffect(() => {
     if (location.state?.message) {
@@ -67,12 +70,16 @@ export default function AnimalsPage() {
     } catch (err) {
       console.error("Error deleting animal:", err);
       setLoading(false);
-    } 
+    }
   };
 
   return (
     <Container size="xl" pos="relative">
-      <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+      <LoadingOverlay
+        visible={loading}
+        zIndex={1000}
+        overlayProps={{ radius: "sm", blur: 2 }}
+      />
       <Group justify="space-between" mb="xl">
         <Title order={1}>All Animals</Title>
         <Button
@@ -152,6 +159,16 @@ export default function AnimalsPage() {
           )}
         </Table.Tbody>
       </Table>
+
+      <Group justify="center" mt="xl">
+        <Pagination
+          total={totalPages}
+          value={page}
+          onChange={setPage}
+          color="purple"
+          radius="md"
+        />
+      </Group>
 
       <SuccessModal
         successModalOpen={successModalOpen}

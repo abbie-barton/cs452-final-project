@@ -3,23 +3,23 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   Title,
   Container,
-  TextInput,
-  Select,
   Textarea,
-  Checkbox,
   Stack,
   Button,
   Group,
-  NumberInput,
   Paper,
-  Grid,
   Divider,
   Loader,
   Center,
 } from "@mantine/core";
-import { DatePickerInput } from "@mantine/dates";
-import { Site, Size, Gender, Animal } from "../../types/Animal";
+import { Animal } from "../../types/Animal";
 import { getAnimalById, updateAnimal } from "../../api/animals";
+import { uploadAnimalImages, deleteImages } from "../../api/images";
+import ImageFileUpload from "../../components/ImageFileUpload";
+import { ImageFile, ImageUpload } from "../../types/Image";
+import BasicInfo from "./form-components/BasicInfo";
+import ShelterInfo from "./form-components/ShelterInfo";
+import CheckboxesInfo from "./form-components/CheckboxesInfo";
 
 export default function EditAnimal() {
   const { id } = useParams();
@@ -29,16 +29,30 @@ export default function EditAnimal() {
   const [intakeDate, setIntakeDate] = useState<Date | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [images, setImages] = useState<ImageFile[]>([]);
+  const [deletedImages, setDeletedImages] = useState<string[]>([]);
 
   useEffect(() => {
     if (!id) return;
 
     getAnimalById(Number(id))
       .then((animal) => {
-        setFormData(animal);
+        const { images, ...animalData } = animal;
+        setFormData(animalData);
 
         if (animal.intake_date) {
           setIntakeDate(new Date(animal.intake_date));
+        }
+        if (images) {
+          console.log(images);
+          const existingImageObjects: ImageFile[] = (images || []).map(
+            (url: string) => ({
+              preview: url,
+              url: url,
+              isExisting: true,
+            })
+          );
+          setImages(existingImageObjects);
         }
 
         setLoading(false);
@@ -49,36 +63,42 @@ export default function EditAnimal() {
       });
   }, [id]);
 
-  const handleDateChange = (value: string | null) => {
-    if (!value) {
-      setIntakeDate(null);
-      return;
-    }
-
-    const date = new Date(value);
-    setIntakeDate(date);
-
-    setFormData((prev) => ({
-      ...prev,
-      intake_date: date.toISOString().split("T")[0],
-    }));
-  };
-
   const handleSubmit = () => {
-    if (!formData?.id) return;
-
     setIsSubmitting(true);
-
     updateAnimal(formData as Animal)
-      .then(() => {
-        navigate("/animals", { state: { message: "Animal updated successfully!" } });
+      .then(async (savedAnimal) => {
+        console.log("Animal updated", savedAnimal);
+        await uploadImages(Number(id));
+
+        navigate("/animals", {
+          state: { message: "Animal updated successfully!" },
+        });
       })
       .catch((error) => {
-        console.error("Error updating animal:", error);
+        console.error("Error saving animal:", error);
       })
       .finally(() => {
         setIsSubmitting(false);
       });
+  };
+
+  const uploadImages = async (animalId: number) => {
+    if (images.length === 0) return;
+
+    const imagesToUpload = images.filter((img) => !img.isExisting);
+
+    const filesToUpload: ImageUpload[] = imagesToUpload
+      .filter((img) => !img.isExisting)
+      .map((img) => ({
+        base64: img.base64!,
+        contentType: img.contentType!,
+      }));
+
+    console.log("Uploading images:", filesToUpload);
+    await uploadAnimalImages(animalId, filesToUpload);
+    if (deletedImages.length > 0) {
+      await deleteImages(animalId, deletedImages);
+    }
   };
 
   if (loading || !formData) {
@@ -102,78 +122,12 @@ export default function EditAnimal() {
             <Title order={3} size="h4" mb="md" c="purple">
               Basic Information
             </Title>
-            <Grid>
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <TextInput
-                  label="Name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  required
-                  disabled={isSubmitting}
-                />
-              </Grid.Col>
 
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <TextInput
-                  label="Species"
-                  value={formData.species}
-                  onChange={(e) =>
-                    setFormData({ ...formData, species: e.target.value })
-                  }
-                  required
-                  disabled={isSubmitting}
-                />
-              </Grid.Col>
-
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <TextInput
-                  label="Breed"
-                  value={formData.breed}
-                  onChange={(e) =>
-                    setFormData({ ...formData, breed: e.target.value })
-                  }
-                  disabled={isSubmitting}
-                />
-              </Grid.Col>
-
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <NumberInput
-                  label="Age"
-                  value={formData.age}
-                  onChange={(value) =>
-                    setFormData({ ...formData, age: value as number })
-                  }
-                  min={0}
-                  disabled={isSubmitting}
-                />
-              </Grid.Col>
-
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <Select
-                  label="Gender"
-                  value={formData.gender}
-                  onChange={(value) =>
-                    setFormData({ ...formData, gender: value as Gender })
-                  }
-                  data={Object.values(Gender)}
-                  disabled={isSubmitting}
-                />
-              </Grid.Col>
-
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <Select
-                  label="Size"
-                  value={formData.size}
-                  onChange={(value) =>
-                    setFormData({ ...formData, size: value as Size })
-                  }
-                  data={Object.values(Size)}
-                  disabled={isSubmitting}
-                />
-              </Grid.Col>
-            </Grid>
+            <BasicInfo
+              formData={formData}
+              setFormData={setFormData}
+              isSubmitting={isSubmitting}
+            />
           </div>
 
           <Divider />
@@ -183,96 +137,31 @@ export default function EditAnimal() {
             <Title order={3} size="h4" mb="md" c="purple">
               Shelter Information
             </Title>
-            <Grid>
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <Select
-                  label="Site Location"
-                  value={formData.site}
-                  onChange={(value) =>
-                    setFormData({ ...formData, site: value as Site })
-                  }
-                  data={Object.values(Site)}
-                  disabled={isSubmitting}
-                />
-              </Grid.Col>
-
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <DatePickerInput
-                  label="Intake Date"
-                  value={intakeDate}
-                  onChange={handleDateChange}
-                  disabled={isSubmitting}
-                />
-              </Grid.Col>
-
-              <Grid.Col span={12}>
-                <TextInput
-                  label="Location Found"
-                  value={formData.location_found}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      location_found: e.target.value,
-                    })
-                  }
-                  disabled={isSubmitting}
-                />
-              </Grid.Col>
-            </Grid>
+            <ShelterInfo
+              formData={formData}
+              setFormData={setFormData}
+              intakeDate={intakeDate}
+              setIntakeDate={setIntakeDate}
+              isSubmitting={isSubmitting}
+            />
           </div>
 
           <Divider />
 
+          <ImageFileUpload
+            images={images}
+            setImages={setImages}
+            setDeletedImages={setDeletedImages}
+          />
+
+          <Divider />
+
           {/* CHECKBOXES */}
-          <Stack gap="sm">
-            <Checkbox
-              label="Spayed or Neutered"
-              checked={formData.spayed_or_neutered}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  spayed_or_neutered: e.currentTarget.checked,
-                })
-              }
-              disabled={isSubmitting}
-            />
-
-            <Checkbox
-              label="Available for Adoption"
-              checked={formData.available_for_adoption}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  available_for_adoption: e.currentTarget.checked,
-                })
-              }
-              disabled={isSubmitting}
-            />
-
-            <Checkbox
-              label="Housetrained"
-              checked={formData.housetrained}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  housetrained: e.currentTarget.checked,
-                })
-              }
-              disabled={isSubmitting}
-            />
-
-            <Checkbox
-              label="Declawed"
-              checked={formData.declawed}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  declawed: e.currentTarget.checked,
-                })
-              }
-              disabled={isSubmitting}
-            />
-          </Stack>
+          <CheckboxesInfo
+            formData={formData}
+            setFormData={setFormData}
+            isSubmitting={isSubmitting}
+          />
 
           <Divider />
 

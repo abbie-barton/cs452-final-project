@@ -7,6 +7,8 @@
 | 11/30/25    | 4     | RDS setup & integration, creating RDS tables, starting building frontend |
 | 12/01/25    | 2     | CDK (Wix) integration research, CRUD animals API, starting to integrate APIs into frontend |
 | 12/02/25    | 2     | CRUD animals API, integrate APIs into frontend, edit animals page |
-| 12/03/25    | 1.25  | S3 API, integration |
-( pagination on table, S3 image view on edit )
-## Total Hours: 15.75
+| 12/03/25    | 2     | S3 API, integration for create animal |
+| 12/04/25    | 2     | S3 integration for edit animal, other image table APIs |
+| 12/05/25    | 2     | Finish S3 integration, clean up code, pagination |
+
+## Total Hours: 20.5

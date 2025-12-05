@@ -3,9 +3,12 @@ import { Animal } from "../types/Animal";
 
 const API_BASE = "https://gxxmq0jkd0.execute-api.us-east-2.amazonaws.com"; 
 
-export const getAnimals = async (): Promise<Animal[]> => {
-  const { data } = await axios.get(`${API_BASE}/animals`);
-  return data.results;
+export const getAnimals = async (
+  page = 1
+): Promise<{ animals: Animal[]; totalPages: number }> => {
+  const { data } = await axios.get(`${API_BASE}/animals?page=${page}`);
+  console.log(data);
+  return { animals: data.animals, totalPages: data.totalPages };
 };
 
 export const getAnimalById = async (id: number): Promise<Animal> => {

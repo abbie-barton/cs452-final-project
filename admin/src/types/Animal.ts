@@ -32,4 +32,5 @@ export interface Animal {
   housetrained?: boolean;
   declawed?: boolean;
   age?: number;
+  images?: string[]
 }

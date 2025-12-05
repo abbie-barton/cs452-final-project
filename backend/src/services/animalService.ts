@@ -32,16 +32,37 @@ export async function createAnimal(animal: Animal): Promise<Animal> {
   return { id: insertId, ...animalWithoutId };
 }
 
-export async function getAnimals(limit = 10, page = 1): Promise<{ results: Animal[]; page: number; limit: number }> {
+export async function getAnimals(
+  limit = 10,
+  page = 1
+): Promise<{
+  animals: Animal[];
+  total: number;
+  page: number;
+  totalPages: number;
+}> {
   const pool = await getPool();
-  const offset = (page - 1) * limit;
+  const safePage = Math.max(1, page);
+  const offset = (safePage - 1) * limit;
 
   const [rows] = await pool.query(
-    "SELECT * FROM animal LIMIT ? OFFSET ?",
+    "SELECT * FROM animal ORDER BY id DESC LIMIT ? OFFSET ?",
     [limit, offset]
   );
 
-  return { results: rows as Animal[], page, limit };
+  const [countResult] = await pool.query(
+    "SELECT COUNT(*) as total FROM animal"
+  );
+
+  const total = (countResult as any)[0].total;
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    animals: rows as Animal[],
+    total,
+    page: safePage,
+    totalPages,
+  };
 }
 
 export async function getAnimalById(id: number): Promise<Animal | null> {
@@ -51,7 +72,10 @@ export async function getAnimalById(id: number): Promise<Animal | null> {
   return animals[0] ?? null;
 }
 
-export async function updateAnimal(id: number, data: Partial<Animal>): Promise<void> {
+export async function updateAnimal(
+  id: number,
+  data: Partial<Animal>
+): Promise<void> {
   const pool = await getPool();
   const fields = Object.keys(data);
   const values = Object.values(data);
@@ -59,7 +83,10 @@ export async function updateAnimal(id: number, data: Partial<Animal>): Promise<v
   if (fields.length === 0) return;
 
   const setString = fields.map((f) => `${f} = ?`).join(", ");
-  await pool.execute(`UPDATE animal SET ${setString} WHERE id = ?`, [...values, id]);
+  await pool.execute(`UPDATE animal SET ${setString} WHERE id = ?`, [
+    ...values,
+    id,
+  ]);
 }
 
 export async function deleteAnimal(id: number): Promise<void> {
