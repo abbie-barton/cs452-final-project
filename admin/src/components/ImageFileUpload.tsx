@@ -109,7 +109,7 @@ export default function ImageFileUpload({
                       style={{ zIndex: 1, backgroundColor: "white" }}
                     />
                     <Image
-                      src={image.preview}
+                      src={image.preview || image.url}
                       alt={`Preview ${index + 1}`}
                       height={120}
                       fit="cover"

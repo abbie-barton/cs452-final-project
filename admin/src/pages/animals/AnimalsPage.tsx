@@ -9,12 +9,18 @@ import {
   ActionIcon,
   Pagination,
   LoadingOverlay,
+  Text,
+  Paper,
+  Grid,
+  TextInput,
+  Select,
+  NumberInput,
 } from "@mantine/core";
 import { IconTrash, IconEdit, IconPlus } from "@tabler/icons-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Animal } from "../../types/Animal";
 import { getAnimals, deleteAnimal } from "../../api/animals";
-import SuccessModal from "../../components/SuccessModal";
+import NotificationModal from "../../components/NotificationModal";
 
 export default function AnimalsPage() {
   const navigate = useNavigate();
@@ -26,11 +32,44 @@ export default function AnimalsPage() {
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
+  const [filters, setFilters] = useState({
+    name: "",
+    site: "",
+    size: "",
+    gender: "",
+    available: "",
+    minAge: "",
+    maxAge: "",
+    sort: "newest",
+  });
+
   useEffect(() => {
     const fetchAnimals = async () => {
       setLoading(true);
       try {
-        const { animals, totalPages } = await getAnimals(page);
+        const filterParams: Record<string, string> = {};
+
+        if (filters.name) filterParams.name = filters.name;
+        if (filters.site) filterParams.site = filters.site;
+        if (filters.size) filterParams.size = filters.size;
+        if (filters.gender) filterParams.gender = filters.gender;
+        if (filters.available !== "" && filters.available !== undefined) {
+          filterParams.available =
+            filters.available === "true" ? "true" : "false";
+        }
+        if (filters.minAge)
+          filterParams.minAge = String(Number(filters.minAge));
+        if (filters.maxAge)
+          filterParams.maxAge = String(Number(filters.maxAge));
+        if (filters.sort)
+          filterParams.sort = filters.sort as "newest" | "oldest";
+
+        const { animals, totalPages } = await getAnimals(
+          page,
+          10,
+          filterParams
+        );
+
         setAnimals(animals);
         setTotalPages(totalPages);
       } catch (err) {
@@ -41,7 +80,7 @@ export default function AnimalsPage() {
     };
 
     fetchAnimals();
-  }, [page]);
+  }, [page, filters]);
 
   useEffect(() => {
     if (location.state?.message) {
@@ -54,6 +93,10 @@ export default function AnimalsPage() {
       }, 3000);
     }
   }, [location.state]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filters]);
 
   const handleDelete = async (id: number) => {
     setLoading(true);
@@ -91,6 +134,140 @@ export default function AnimalsPage() {
           Add New Animal
         </Button>
       </Group>
+
+      <Paper withBorder p="md" radius="lg" mb="xl">
+        <Grid>
+          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+            <TextInput
+              label="Search Name"
+              placeholder="Bella..."
+              value={filters.name}
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, name: e.currentTarget.value }))
+              }
+            />
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+            <Select
+              label="Site"
+              placeholder="Select site"
+              data={["", "Lehi", "Saratoga Springs", "Provo"]}
+              value={filters.site}
+              onChange={(value) =>
+                setFilters((prev) => ({ ...prev, site: value || "" }))
+              }
+            />
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+            <Select
+              label="Size"
+              placeholder="Select size"
+              data={["", "Small", "Medium", "Large"]}
+              value={filters.size}
+              onChange={(value) =>
+                setFilters((prev) => ({ ...prev, size: value || "" }))
+              }
+            />
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+            <Select
+              label="Gender"
+              placeholder="Select gender"
+              data={["", "Female", "Male"]}
+              value={filters.gender}
+              onChange={(value) =>
+                setFilters((prev) => ({ ...prev, gender: value || "" }))
+              }
+            />
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+            <Select
+              label="Availability"
+              data={[
+                { value: "", label: "All" },
+                { value: "true", label: "Available" },
+                { value: "false", label: "Not Available" },
+              ]}
+              value={filters.available}
+              onChange={(value) =>
+                setFilters((prev) => ({ ...prev, available: value || "" }))
+              }
+            />
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 6, md: 3 }}>
+            <NumberInput
+              label="Min age"
+              min={0}
+              value={filters.minAge}
+              onChange={(value) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  minAge: value?.toString() || "",
+                }))
+              }
+            />
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 6, md: 3 }}>
+            <NumberInput
+              label="Max age"
+              min={0}
+              value={filters.maxAge}
+              onChange={(value) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  maxAge: value?.toString() || "",
+                }))
+              }
+            />
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, md: 3 }}>
+            <Select
+              label="Sort by date"
+              data={[
+                { value: "newest", label: "Newest first" },
+                { value: "oldest", label: "Oldest first" },
+              ]}
+              value={filters.sort}
+              onChange={(value) =>
+                setFilters((prev) => ({ ...prev, sort: value || "newest" }))
+              }
+            />
+          </Grid.Col>
+        </Grid>
+
+        <Group justify="space-between" mt="md">
+          <Button
+            variant="light"
+            color="gray"
+            onClick={() => {
+              setFilters({
+                name: "",
+                site: "",
+                size: "",
+                gender: "",
+                available: "",
+                minAge: "",
+                maxAge: "",
+                sort: "newest",
+              });
+              setPage(1);
+            }}
+          >
+            Clear filters
+          </Button>
+
+          <Text size="sm" c="dimmed">
+            {animals.length} results on this page
+          </Text>
+        </Group>
+      </Paper>
 
       <Table striped highlightOnHover withTableBorder>
         <Table.Thead>
@@ -170,10 +347,11 @@ export default function AnimalsPage() {
         />
       </Group>
 
-      <SuccessModal
-        successModalOpen={successModalOpen}
-        setSuccessModalOpen={setSuccessModalOpen}
-        successMessage={successMessage}
+      <NotificationModal
+        message={successMessage}
+        isOpen={successModalOpen}
+        setIsOpen={setSuccessModalOpen}
+        type="success"
       />
     </Container>
   );

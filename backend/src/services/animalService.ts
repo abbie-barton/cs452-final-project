@@ -34,7 +34,18 @@ export async function createAnimal(animal: Animal): Promise<Animal> {
 
 export async function getAnimals(
   limit = 10,
-  page = 1
+  page = 1,
+  filters?: {
+    name?: string;
+    species?: string;
+    site?: string;
+    size?: string;
+    gender?: string;
+    available?: boolean;
+    minAge?: number;
+    maxAge?: number;
+    sort?: "newest" | "oldest";
+  }
 ): Promise<{
   animals: Animal[];
   total: number;
@@ -42,16 +53,82 @@ export async function getAnimals(
   totalPages: number;
 }> {
   const pool = await getPool();
+
   const safePage = Math.max(1, page);
   const offset = (safePage - 1) * limit;
 
+  let whereClauses: string[] = [];
+  let values: any[] = [];
+
+  if (filters?.name) {
+    whereClauses.push("name LIKE ?");
+    values.push(`%${filters.name}%`);
+  }
+
+  if (filters?.species) {
+    whereClauses.push("species = ?");
+    values.push(filters.species);
+  }
+
+  if (filters?.site) {
+    whereClauses.push("site = ?");
+    values.push(filters.site);
+  }
+
+  if (filters?.size) {
+    whereClauses.push("size = ?");
+    values.push(filters.size);
+  }
+
+  if (filters?.gender) {
+    whereClauses.push("gender = ?");
+    values.push(filters.gender);
+  }
+
+  if (typeof filters?.available === "boolean") {
+    whereClauses.push("available_for_adoption = ?");
+    values.push(filters.available);
+  }
+
+  if (filters?.minAge !== undefined) {
+    whereClauses.push("age >= ?");
+    values.push(filters.minAge);
+  }
+
+  if (filters?.maxAge !== undefined) {
+    whereClauses.push("age <= ?");
+    values.push(filters.maxAge);
+  }
+
+  const whereSQL =
+    whereClauses.length > 0
+      ? `WHERE ${whereClauses.join(" AND ")}`
+      : "";
+
+  const orderSQL =
+    filters?.sort === "oldest"
+      ? "ORDER BY intake_date ASC"
+      : "ORDER BY intake_date DESC";
+
+  // 1. Get paginated animals
   const [rows] = await pool.query(
-    "SELECT * FROM animal ORDER BY id DESC LIMIT ? OFFSET ?",
-    [limit, offset]
+    `
+    SELECT * FROM animal
+    ${whereSQL}
+    ${orderSQL}
+    LIMIT ? OFFSET ?
+    `,
+    [...values, limit, offset]
   );
 
+  // 2. Get total count WITH filters applied
   const [countResult] = await pool.query(
-    "SELECT COUNT(*) as total FROM animal"
+    `
+    SELECT COUNT(*) AS total
+    FROM animal
+    ${whereSQL}
+    `,
+    values
   );
 
   const total = (countResult as any)[0].total;

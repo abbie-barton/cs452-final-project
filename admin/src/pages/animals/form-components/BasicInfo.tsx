@@ -5,20 +5,25 @@ interface BasicInfoProps {
   formData: Partial<Animal>;
   setFormData: (data: Partial<Animal>) => void;
   isSubmitting: boolean;
+  errors?: Record<string, boolean>;
 }
 
-export default function BasicInfo({ formData, setFormData, isSubmitting }: BasicInfoProps) {
+export default function BasicInfo({
+  formData,
+  setFormData,
+  isSubmitting,
+  errors = {},
+}: BasicInfoProps) {
   return (
     <Grid>
       <Grid.Col span={{ base: 12, sm: 6 }}>
         <TextInput
           label="Name"
           value={formData.name}
-          onChange={(e) =>
-            setFormData({ ...formData, name: e.target.value })
-          }
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           required
           disabled={isSubmitting}
+          error={errors.name && "Name is required"}
         />
       </Grid.Col>
 
@@ -31,6 +36,7 @@ export default function BasicInfo({ formData, setFormData, isSubmitting }: Basic
           }
           required
           disabled={isSubmitting}
+          error={errors.species && "Species is required"}
         />
       </Grid.Col>
 
@@ -38,9 +44,7 @@ export default function BasicInfo({ formData, setFormData, isSubmitting }: Basic
         <TextInput
           label="Breed"
           value={formData.breed}
-          onChange={(e) =>
-            setFormData({ ...formData, breed: e.target.value })
-          }
+          onChange={(e) => setFormData({ ...formData, breed: e.target.value })}
           disabled={isSubmitting}
         />
       </Grid.Col>
@@ -66,6 +70,7 @@ export default function BasicInfo({ formData, setFormData, isSubmitting }: Basic
           }
           data={Object.values(Gender)}
           disabled={isSubmitting}
+          error={errors.gender && "Gender is required"}
         />
       </Grid.Col>
 
@@ -78,6 +83,18 @@ export default function BasicInfo({ formData, setFormData, isSubmitting }: Basic
           }
           data={Object.values(Size)}
           disabled={isSubmitting}
+          error={errors.size && "Size is required"}
+        />
+      </Grid.Col>
+
+      <Grid.Col span={{ base: 12, sm: 6 }}>
+        <TextInput
+          label="Color"
+          value={formData.color}
+          onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+          disabled={isSubmitting}
+          required
+          error={errors.color && "Color is required"}
         />
       </Grid.Col>
     </Grid>

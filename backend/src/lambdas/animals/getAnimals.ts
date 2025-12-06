@@ -23,13 +23,26 @@ export const main: APIGatewayProxyHandlerV2 = async (event) => {
         statusCode: 200,
         body: JSON.stringify({ ...animal, images }),
       };
-    } 
-    else {
+    } else {
       const page = Number(event.queryStringParameters?.page || 1);
       const limit = Number(event.queryStringParameters?.limit || 10);
-      const offset = (page - 1) * limit;
 
-      const { animals, total } = await getAnimals(limit, page);
+      const { animals, total } = await getAnimals(limit, page, {
+        name: event.queryStringParameters?.name,
+        species: event.queryStringParameters?.species,
+        site: event.queryStringParameters?.site,
+        size: event.queryStringParameters?.size,
+        gender: event.queryStringParameters?.gender,
+        available: event.queryStringParameters?.available === "true",
+        minAge: event.queryStringParameters?.minAge
+          ? Number(event.queryStringParameters.minAge)
+          : undefined,
+        maxAge: event.queryStringParameters?.maxAge
+          ? Number(event.queryStringParameters.maxAge)
+          : undefined,
+        sort:
+          event.queryStringParameters?.sort === "oldest" ? "oldest" : "newest",
+      });
 
       return {
         statusCode: 200,
@@ -37,12 +50,11 @@ export const main: APIGatewayProxyHandlerV2 = async (event) => {
           animals,
           total,
           page,
-          totalPages: Math.ceil(total / limit)
+          totalPages: Math.ceil(total / limit),
         }),
       };
     }
-  } 
-  catch (err: any) {
+  } catch (err: any) {
     return {
       statusCode: 500,
       body: JSON.stringify({ error: err.message }),

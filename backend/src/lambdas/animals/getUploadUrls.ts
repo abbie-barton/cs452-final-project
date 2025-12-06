@@ -23,7 +23,6 @@ export const main: APIGatewayProxyHandlerV2 = async (event) => {
           Bucket: bucket,
           Key: key,
           ContentType: file.fileType,
-          ACL: "public-read",
         });
 
         const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });

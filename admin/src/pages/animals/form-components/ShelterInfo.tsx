@@ -8,6 +8,7 @@ interface ShelterInfoProps {
   intakeDate: Date | null;
   setIntakeDate: (date: Date | null) => void;
   isSubmitting: boolean;
+  errors?: Record<string, boolean>;
 }
 
 export default function ShelterInfo({
@@ -16,6 +17,7 @@ export default function ShelterInfo({
   intakeDate,
   setIntakeDate,
   isSubmitting,
+  errors = {},
 }: ShelterInfoProps) {
   const handleDateChange = (value: string | null) => {
     if (!value) {
@@ -43,6 +45,7 @@ export default function ShelterInfo({
           }
           data={Object.values(Site)}
           disabled={isSubmitting}
+          error={errors.site && "Site is required"}
         />
       </Grid.Col>
 
@@ -52,6 +55,7 @@ export default function ShelterInfo({
           value={intakeDate}
           onChange={handleDateChange}
           disabled={isSubmitting}
+          error={errors.intake_date && "Intake date is required"}
         />
       </Grid.Col>
 
@@ -66,6 +70,7 @@ export default function ShelterInfo({
             })
           }
           disabled={isSubmitting}
+          error={errors.location_found && "Location found is required"}
         />
       </Grid.Col>
     </Grid>

@@ -27,7 +27,6 @@ export async function uploadAnimalImages(
       Key: key,
       Body: buffer,
       ContentType: file.contentType,
-      ACL: "public-read"
     });
 
     await s3.send(command);

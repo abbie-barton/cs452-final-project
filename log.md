@@ -10,5 +10,6 @@
 | 12/03/25    | 2     | S3 API, integration for create animal |
 | 12/04/25    | 2     | S3 integration for edit animal, other image table APIs |
 | 12/05/25    | 2     | Finish S3 integration, clean up code, pagination |
+| 12/06/25    | 2     | Add error modals, preview images functionality, start on animal filtering |
 
-## Total Hours: 20.5
+## Total Hours: 22.5
