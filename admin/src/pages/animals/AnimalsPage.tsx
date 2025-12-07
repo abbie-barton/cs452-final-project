@@ -21,6 +21,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Animal } from "../../types/Animal";
 import { getAnimals, deleteAnimal } from "../../api/animals";
 import NotificationModal from "../../components/NotificationModal";
+import { useDebounce } from "../../hooks/debounce";
 
 export default function AnimalsPage() {
   const navigate = useNavigate();
@@ -42,6 +43,8 @@ export default function AnimalsPage() {
     maxAge: "",
     sort: "newest",
   });
+
+  const debouncedFilters = useDebounce(filters, 500);
 
   useEffect(() => {
     const fetchAnimals = async () => {
@@ -80,7 +83,7 @@ export default function AnimalsPage() {
     };
 
     fetchAnimals();
-  }, [page, filters]);
+  }, [page, debouncedFilters]);
 
   useEffect(() => {
     if (location.state?.message) {
@@ -116,6 +119,13 @@ export default function AnimalsPage() {
     }
   };
 
+  const handleFilterChange = (name: string, value: string | null) => {
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value ?? "",
+    }));
+  };
+
   return (
     <Container size="xl" pos="relative">
       <LoadingOverlay
@@ -142,9 +152,7 @@ export default function AnimalsPage() {
               label="Search Name"
               placeholder="Bella..."
               value={filters.name}
-              onChange={(e) =>
-                setFilters((prev) => ({ ...prev, name: e.currentTarget.value }))
-              }
+              onChange={(e) => handleFilterChange("name", e.target.value)}
             />
           </Grid.Col>
 
@@ -154,9 +162,7 @@ export default function AnimalsPage() {
               placeholder="Select site"
               data={["", "Lehi", "Saratoga Springs", "Provo"]}
               value={filters.site}
-              onChange={(value) =>
-                setFilters((prev) => ({ ...prev, site: value || "" }))
-              }
+              onChange={(value) => handleFilterChange("site", value)}
             />
           </Grid.Col>
 
@@ -166,9 +172,7 @@ export default function AnimalsPage() {
               placeholder="Select size"
               data={["", "Small", "Medium", "Large"]}
               value={filters.size}
-              onChange={(value) =>
-                setFilters((prev) => ({ ...prev, size: value || "" }))
-              }
+              onChange={(value) => handleFilterChange("size", value)}
             />
           </Grid.Col>
 
@@ -178,9 +182,7 @@ export default function AnimalsPage() {
               placeholder="Select gender"
               data={["", "Female", "Male"]}
               value={filters.gender}
-              onChange={(value) =>
-                setFilters((prev) => ({ ...prev, gender: value || "" }))
-              }
+              onChange={(value) => handleFilterChange("gender", value)}
             />
           </Grid.Col>
 
@@ -193,9 +195,7 @@ export default function AnimalsPage() {
                 { value: "false", label: "Not Available" },
               ]}
               value={filters.available}
-              onChange={(value) =>
-                setFilters((prev) => ({ ...prev, available: value || "" }))
-              }
+              onChange={(value) => handleFilterChange("available", value)}
             />
           </Grid.Col>
 
@@ -204,12 +204,7 @@ export default function AnimalsPage() {
               label="Min age"
               min={0}
               value={filters.minAge}
-              onChange={(value) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  minAge: value?.toString() || "",
-                }))
-              }
+              onChange={(value) => handleFilterChange("minAge", value?.toString() || "")}
             />
           </Grid.Col>
 
@@ -218,12 +213,7 @@ export default function AnimalsPage() {
               label="Max age"
               min={0}
               value={filters.maxAge}
-              onChange={(value) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  maxAge: value?.toString() || "",
-                }))
-              }
+              onChange={(value) => handleFilterChange("maxAge", value?.toString() || "")}
             />
           </Grid.Col>
 
@@ -235,9 +225,7 @@ export default function AnimalsPage() {
                 { value: "oldest", label: "Oldest first" },
               ]}
               value={filters.sort}
-              onChange={(value) =>
-                setFilters((prev) => ({ ...prev, sort: value || "newest" }))
-              }
+              onChange={(value) => handleFilterChange("sort", value || "newest")}
             />
           </Grid.Col>
         </Grid>

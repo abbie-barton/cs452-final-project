@@ -31,6 +31,19 @@ export default function EditAnimal() {
   const [loading, setLoading] = useState(true);
   const [images, setImages] = useState<ImageFile[]>([]);
   const [deletedImages, setDeletedImages] = useState<string[]>([]);
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
+
+  const showNotification = (message: string) => {
+    setNotificationMessage(message);
+    setNotificationOpen(true);
+
+    setTimeout(() => {
+      setNotificationOpen(false);
+    }, 5000);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -59,11 +72,19 @@ export default function EditAnimal() {
       })
       .catch((error) => {
         console.error("Error loading animal:", error);
+        showNotification(
+          error?.message || "Failed to get animal. Please try again."
+        );
         setLoading(false);
       });
   }, [id]);
 
   const handleSubmit = () => {
+    setErrors({});
+
+    if (!validateForm()) {
+      return;
+    }
     setIsSubmitting(true);
     updateAnimal(formData as Animal)
       .then(async (savedAnimal) => {
@@ -76,6 +97,9 @@ export default function EditAnimal() {
       })
       .catch((error) => {
         console.error("Error saving animal:", error);
+        showNotification(
+          error?.message || "Failed to update animal. Please try again."
+        );
       })
       .finally(() => {
         setIsSubmitting(false);
@@ -99,6 +123,30 @@ export default function EditAnimal() {
     if (deletedImages.length > 0) {
       await deleteImages(animalId, deletedImages);
     }
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, boolean> = {};
+
+    // Required fields
+    if (formData === null) return false;
+    if (!formData.name?.trim()) newErrors.name = true;
+    if (!formData.species?.trim()) newErrors.species = true;
+    if (!formData.color?.trim()) newErrors.color = true;
+    if (!formData.site) newErrors.site = true;
+    if (!formData.intake_date) newErrors.intake_date = true;
+    if (!formData.location_found?.trim()) newErrors.location_found = true;
+    if (!formData.size) newErrors.size = true;
+    if (!formData.gender) newErrors.gender = true;
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      showNotification("Please fill in all required fields");
+      return false;
+    }
+
+    return true;
   };
 
   if (loading || !formData) {
@@ -127,6 +175,7 @@ export default function EditAnimal() {
               formData={formData}
               setFormData={setFormData}
               isSubmitting={isSubmitting}
+              errors={errors}
             />
           </div>
 
@@ -143,6 +192,7 @@ export default function EditAnimal() {
               intakeDate={intakeDate}
               setIntakeDate={setIntakeDate}
               isSubmitting={isSubmitting}
+              errors={errors}
             />
           </div>
 

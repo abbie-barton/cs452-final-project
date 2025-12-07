@@ -33,7 +33,10 @@ export const main: APIGatewayProxyHandlerV2 = async (event) => {
         site: event.queryStringParameters?.site,
         size: event.queryStringParameters?.size,
         gender: event.queryStringParameters?.gender,
-        available: event.queryStringParameters?.available === "true",
+        available:
+          event.queryStringParameters?.available !== undefined
+            ? event.queryStringParameters?.available === "true"
+            : undefined,
         minAge: event.queryStringParameters?.minAge
           ? Number(event.queryStringParameters.minAge)
           : undefined,
