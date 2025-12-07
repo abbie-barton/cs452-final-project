@@ -6,6 +6,7 @@ import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
 import { Bucket, HttpMethods } from "aws-cdk-lib/aws-s3";
 import { AnimalsApi } from "../constructs/AnimalsApi";
 import { ImagesApi } from "../constructs/ImagesApi";
+import { MedicalRecordsApi } from "../constructs/MedicalRecordApi";
 
 interface ApiStackProps extends StackProps {
   vpc: IVpc;
@@ -56,5 +57,12 @@ export class ApiStack extends Stack {
       dbEndpoint: props.dbEndpoint,
       bucket: imageBucket,
     });
+
+    new MedicalRecordsApi(this, "MedicalRecordsApi", {
+      api: this.httpApi,
+      vpc: props.vpc,
+      dbSecret: props.dbSecret,
+      dbEndpoint: props.dbEndpoint
+    })
   }
 }
