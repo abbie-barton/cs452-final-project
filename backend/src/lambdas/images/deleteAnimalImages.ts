@@ -15,7 +15,7 @@ export const main: APIGatewayProxyHandlerV2 = async (event) => {
       return { statusCode: 400, body: "imageUrls required" };
     }
 
-    const bucketName = process.env.ANIMAL_IMAGES_BUCKET!;
+    const bucketName = process.env.BUCKET_NAME!;
     await deleteAnimalImages(bucketName, imageUrls);
 
     return {

@@ -12,6 +12,7 @@ export const main: APIGatewayProxyHandlerV2 = async (event) => {
       }
 
       const animal = await getAnimalById(id);
+      console.log("animal from the lambda: ", JSON.stringify(animal));
 
       if (!animal) {
         return { statusCode: 404, body: "Animal not found" };

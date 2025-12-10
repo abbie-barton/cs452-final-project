@@ -24,15 +24,20 @@ export async function createMedicalRecord(data: {
   record_type: string;
   notes?: string;
 }) {
-  const pool = await getPool();
+  try {
+    const pool = await getPool();
+    console.log(data);
 
-  const [result]: any = await pool.query(
-    `INSERT INTO medical_record (animal_id, record_date, record_type, notes)
+    const [result]: any = await pool.query(
+      `INSERT INTO medical_record (animal_id, record_date, record_type, notes)
      VALUES (?, ?, ?, ?)`,
-    [data.animal_id, data.record_date, data.record_type, data.notes]
-  );
+      [data.animal_id, data.record_date, data.record_type, data.notes]
+    );
 
-  return { id: result.insertId, ...data };
+    return { id: result.insertId, ...data };
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 export async function updateMedicalRecord(id: number, data: any) {

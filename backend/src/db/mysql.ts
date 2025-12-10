@@ -6,16 +6,19 @@ const sm = new SecretsManagerClient({});
 let cachedPool: mysql.Pool | null = null;
 
 async function getSecret() {
+  console.log("Fetching secret...");
   const res = await sm.send(
     new GetSecretValueCommand({
       SecretId: process.env.DB_SECRET_NAME,
     })
   );
 
+  console.log("Secret fetched:", !!res.SecretString);
   if (!res.SecretString) throw new Error("Secret not found");
 
   return JSON.parse(res.SecretString);
 }
+
 
 export async function getPool() {
   if (cachedPool) return cachedPool;

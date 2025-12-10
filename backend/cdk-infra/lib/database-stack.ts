@@ -12,9 +12,9 @@ import {
   Port,
   Vpc,
   SubnetType,
-  SecurityGroup,
 } from "aws-cdk-lib/aws-ec2";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
+import * as ec2 from "aws-cdk-lib/aws-ec2";
 
 export class DatabaseStack extends Stack {
   public readonly vpc: Vpc;
@@ -24,8 +24,9 @@ export class DatabaseStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    // VPC for database + lambdas
+    // CREATE THE VPC
     this.vpc = new Vpc(this, "AnimalVpc", {
+      maxAzs: 2,
       natGateways: 0,
       subnetConfiguration: [
         {
@@ -34,12 +35,28 @@ export class DatabaseStack extends Stack {
         },
         {
           name: "private",
-          subnetType: SubnetType.PRIVATE_ISOLATED,
+          subnetType: SubnetType.PRIVATE_WITH_EGRESS,
         },
       ],
     });
 
-    // Store DB credentials securely
+    // Secrets Manager VPC Endpoint
+    new ec2.InterfaceVpcEndpoint(this, "SecretsManagerEndpoint", {
+      vpc: this.vpc,
+      service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+      subnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
+    });
+
+    // S3 VPC Endpoint (to allow private lambdas to reach S3)
+    new ec2.GatewayVpcEndpoint(this, "S3Endpoint", {
+      vpc: this.vpc,
+      service: ec2.GatewayVpcEndpointAwsService.S3,
+      subnets: [
+        { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
+      ],
+    });
+
+    // Secret for DB credentials
     this.dbSecret = new Secret(this, "AnimalDbSecret", {
       generateSecretString: {
         secretStringTemplate: JSON.stringify({ username: "admin" }),
@@ -48,7 +65,7 @@ export class DatabaseStack extends Stack {
       },
     });
 
-    // RDS instance
+    // RDS Instance
     this.db = new DatabaseInstance(this, "AnimalDB", {
       engine: DatabaseInstanceEngine.mysql({
         version: MysqlEngineVersion.VER_8_0,
@@ -65,7 +82,6 @@ export class DatabaseStack extends Stack {
       databaseName: "animal_shelter",
     });
 
-    // Allow Lambda(s) to connect to MySQL
     this.db.connections.allowFromAnyIpv4(Port.tcp(3306)); // dev only
   }
 }

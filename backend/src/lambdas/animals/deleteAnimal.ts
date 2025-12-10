@@ -11,7 +11,7 @@ export const main: APIGatewayProxyHandlerV2 = async (event) => {
 
     const id = parseInt(event.pathParameters.id, 10);
     
-    await deleteAllImagesForAnimal(process.env.ANIMAL_IMAGES_BUCKET!, id)
+    await deleteAllImagesForAnimal(process.env.BUCKET_NAME!, id)
     await deleteMedicalRecordByAnimalId(id);
     await deleteAnimal(id);
 

@@ -3,6 +3,7 @@ import { Animal } from "../../../shared/dist/types/Animal";
 
 export async function createAnimal(animal: Animal): Promise<Animal> {
   const pool = await getPool();
+  console.log("after create pool in createAnimal");
 
   const [result] = await pool.execute(
     `INSERT INTO animal 
@@ -101,9 +102,7 @@ export async function getAnimals(
   }
 
   const whereSQL =
-    whereClauses.length > 0
-      ? `WHERE ${whereClauses.join(" AND ")}`
-      : "";
+    whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
 
   const orderSQL =
     filters?.sort === "oldest"
@@ -143,10 +142,18 @@ export async function getAnimals(
 }
 
 export async function getAnimalById(id: number): Promise<Animal | null> {
-  const pool = await getPool();
-  const [rows] = await pool.query("SELECT * FROM animal WHERE id = ?", [id]);
-  const animals = rows as Animal[];
-  return animals[0] ?? null;
+  try {
+    console.log("getting animal by id: ", id)
+    const pool = await getPool();
+    const [rows] = await pool.query("SELECT * FROM animal WHERE id = ?", [id]);
+    console.log("query completed")
+    const animals = rows as Animal[];
+    console.log(JSON.stringify(animals))
+    return animals[0] ?? null;
+  } catch (error) {
+    console.error(error);
+    return null
+  }
 }
 
 export async function updateAnimal(

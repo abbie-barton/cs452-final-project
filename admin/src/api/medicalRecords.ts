@@ -1,7 +1,7 @@
 import axios from "axios";
 import { MedicalRecord } from "../types/MedicalRecord";
 
-const API_BASE = "https://gxxmq0jkd0.execute-api.us-east-2.amazonaws.com";
+const API_BASE = "https://ogs2l8umy1.execute-api.us-east-2.amazonaws.com";
 
 export const getMedicalRecordsByAnimal = async (
   animalId: number

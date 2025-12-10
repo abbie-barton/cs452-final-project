@@ -3,12 +3,15 @@ import { createAnimal } from "../../services/animalService";
 
 export const main: APIGatewayProxyHandlerV2 = async (event) => {
   try {
+    console.log("🐶 createAnimal Lambda invoked");
     if (!event.body) {
       return { statusCode: 400, body: "Missing request body" };
     }
 
     const data = JSON.parse(event.body);
+    console.log(data);
     const created = await createAnimal(data);
+    console.log("created animal")
 
     return {
       statusCode: 201,

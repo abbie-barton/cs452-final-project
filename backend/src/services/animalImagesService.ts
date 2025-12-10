@@ -17,7 +17,7 @@ export async function createAnimalImages(
 
   await pool.query(
     `
-    INSERT INTO animal_image (animal_id, image_url)
+    INSERT INTO animal_images (animal_id, image_url)
     VALUES ?
     `,
     [values]
@@ -28,7 +28,7 @@ export async function getAnimalImages(animalId: number): Promise<string[]> {
   const pool = await getPool();
 
   const [rows] = await pool.query(
-    `SELECT image_url FROM animal_image WHERE animal_id = ?`,
+    `SELECT image_url FROM animal_images WHERE animal_id = ?`,
     [animalId]
   );
 

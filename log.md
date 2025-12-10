@@ -13,7 +13,7 @@
 | 12/06/25    | 2     | Add error modals, preview images functionality, start on animal filtering |
 | 12/07/25    | 2     | Finish animal filtering, sidebar, start on medical record APIs |
 | 12/08/25    | 2     | Implement medical record APIs on create animal page |
-| 12/09/25    | 1.5     | Fix date picker component, implement medical record APIs on edit animal page, rework cdk to minimize cost |
-** make a way to update records on edit page? 
+| 12/09/25    | 1.5   | Fix date picker component, implement medical record APIs on edit animal page, rework cdk to minimize cost |
+| 12/10/25    | 4     | Finish reworking the cdk to minimize costs |
 
-## Total Hours: 28
+## Total Hours: 32

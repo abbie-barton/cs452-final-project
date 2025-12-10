@@ -2,7 +2,7 @@ import axios from "axios";
 import { Animal } from "../types/Animal";
 import { AnimalFilters } from "../types/AnimalFilters";
 
-const API_BASE = "https://gxxmq0jkd0.execute-api.us-east-2.amazonaws.com";
+const API_BASE = "https://ogs2l8umy1.execute-api.us-east-2.amazonaws.com";
 
 export const getAnimals = async (
   page = 1,
