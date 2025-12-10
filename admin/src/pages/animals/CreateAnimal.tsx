@@ -20,6 +20,9 @@ import BasicInfo from "./form-components/BasicInfo";
 import ShelterInfo from "./form-components/ShelterInfo";
 import CheckboxesInfo from "./form-components/CheckboxesInfo";
 import NotificationModal from "../../components/NotificationModal";
+import { MedicalRecord } from "../../types/MedicalRecord";
+import MedicalRecords from "./form-components/MedicalRecords";
+import { createMedicalRecord } from "../../api/medicalRecords";
 
 export default function CreateAnimal() {
   const navigate = useNavigate();
@@ -43,6 +46,9 @@ export default function CreateAnimal() {
   });
 
   const [intakeDate, setIntakeDate] = useState<Date | null>(new Date());
+  const [medicalRecords, setMedicalRecords] = useState<
+    Omit<MedicalRecord, "animal_id">[]
+  >([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [images, setImages] = useState<ImageFile[]>([]);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
@@ -75,7 +81,7 @@ export default function CreateAnimal() {
 
   const handleSubmit = () => {
     setErrors({});
-    
+
     if (!validateForm()) {
       return;
     }
@@ -85,6 +91,14 @@ export default function CreateAnimal() {
         console.log("Animal saved:", savedAnimal);
         if (savedAnimal.id) {
           await uploadImages(savedAnimal.id);
+
+          if (medicalRecords.length > 0 && savedAnimal.id) {
+          await Promise.all(
+            medicalRecords.map(async (record) => {
+              return await createMedicalRecord(savedAnimal.id!, record);
+            })
+          );
+        }
         }
         navigate("/animals", {
           state: { message: "Animal created successfully!" },
@@ -103,7 +117,7 @@ export default function CreateAnimal() {
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, boolean> = {};
-    
+
     // Required fields
     if (!formData.name?.trim()) newErrors.name = true;
     if (!formData.species?.trim()) newErrors.species = true;
@@ -168,6 +182,19 @@ export default function CreateAnimal() {
             <Divider />
 
             <ImageFileUpload images={images} setImages={setImages} />
+
+            <Divider />
+
+            <div>
+              <Title order={3} size="h4" mb="md" c="purple">
+                Medical Records
+              </Title>
+              <MedicalRecords
+                records={medicalRecords}
+                setRecords={setMedicalRecords}
+                isSubmitting={isSubmitting}
+              />
+            </div>
 
             <Divider />
 

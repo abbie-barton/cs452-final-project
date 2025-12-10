@@ -20,6 +20,14 @@ import { ImageFile, ImageUpload } from "../../types/Image";
 import BasicInfo from "./form-components/BasicInfo";
 import ShelterInfo from "./form-components/ShelterInfo";
 import CheckboxesInfo from "./form-components/CheckboxesInfo";
+import NotificationModal from "../../components/NotificationModal";
+import { MedicalRecord } from "../../types/MedicalRecord";
+import MedicalRecords from "./form-components/MedicalRecords";
+import {
+  createMedicalRecord,
+  getMedicalRecordsByAnimal,
+  deleteMedicalRecord,
+} from "../../api/medicalRecords";
 
 export default function EditAnimal() {
   const { id } = useParams();
@@ -32,6 +40,10 @@ export default function EditAnimal() {
   const [images, setImages] = useState<ImageFile[]>([]);
   const [deletedImages, setDeletedImages] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [medicalRecords, setMedicalRecords] = useState<
+    Omit<MedicalRecord, "animal_id">[]
+  >([]);
+  const [deletedRecordIds, setDeletedRecordIds] = useState<number[]>([]);
 
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
@@ -77,6 +89,9 @@ export default function EditAnimal() {
         );
         setLoading(false);
       });
+    getMedicalRecordsByAnimal(Number(id)).then((records) => {
+      setMedicalRecords(records);
+    });
   }, [id]);
 
   const handleSubmit = () => {
@@ -90,6 +105,7 @@ export default function EditAnimal() {
       .then(async (savedAnimal) => {
         console.log("Animal updated", savedAnimal);
         await uploadImages(Number(id));
+        await deleteRecords();
 
         navigate("/animals", {
           state: { message: "Animal updated successfully!" },
@@ -105,6 +121,15 @@ export default function EditAnimal() {
         setIsSubmitting(false);
       });
   };
+
+  const deleteRecords = async () => {
+    if (deletedRecordIds.length === 0) return;
+    await Promise.all(
+      deletedRecordIds.map(async (recordId) => {
+        return await deleteMedicalRecord(recordId);
+      })
+    );
+  }
 
   const uploadImages = async (animalId: number) => {
     if (images.length === 0) return;
@@ -158,91 +183,115 @@ export default function EditAnimal() {
   }
 
   return (
-    <Container size="lg" py="xl">
-      <Title order={1} mb="md">
-        Edit Animal
-      </Title>
+    <>
+      <Container size="lg" py="xl">
+        <Title order={1} mb="md">
+          Edit Animal
+        </Title>
 
-      <Paper shadow="xs" p="xl" radius="md" withBorder>
-        <Stack gap="xl">
-          {/* BASIC INFO */}
-          <div>
-            <Title order={3} size="h4" mb="md" c="purple">
-              Basic Information
-            </Title>
+        <Paper shadow="xs" p="xl" radius="md" withBorder>
+          <Stack gap="xl">
+            {/* BASIC INFO */}
+            <div>
+              <Title order={3} size="h4" mb="md" c="purple">
+                Basic Information
+              </Title>
 
-            <BasicInfo
+              <BasicInfo
+                formData={formData}
+                setFormData={setFormData}
+                isSubmitting={isSubmitting}
+                errors={errors}
+              />
+            </div>
+
+            <Divider />
+
+            {/* SHELTER INFO */}
+            <div>
+              <Title order={3} size="h4" mb="md" c="purple">
+                Shelter Information
+              </Title>
+              <ShelterInfo
+                formData={formData}
+                setFormData={setFormData}
+                intakeDate={intakeDate}
+                setIntakeDate={setIntakeDate}
+                isSubmitting={isSubmitting}
+                errors={errors}
+              />
+            </div>
+
+            <Divider />
+
+            <ImageFileUpload
+              images={images}
+              setImages={setImages}
+              setDeletedImages={setDeletedImages}
+            />
+
+            <Divider />
+
+            <div>
+              <Title order={3} size="h4" mb="md" c="purple">
+                Medical Records
+              </Title>
+              <MedicalRecords
+                records={medicalRecords}
+                setRecords={setMedicalRecords}
+                deletedRecordIds={deletedRecordIds}
+                setDeletedRecordIds={setDeletedRecordIds}
+                isSubmitting={isSubmitting}
+              />
+            </div>
+
+            <Divider />
+
+            {/* CHECKBOXES */}
+            <CheckboxesInfo
               formData={formData}
               setFormData={setFormData}
               isSubmitting={isSubmitting}
-              errors={errors}
             />
-          </div>
 
-          <Divider />
+            <Divider />
 
-          {/* SHELTER INFO */}
-          <div>
-            <Title order={3} size="h4" mb="md" c="purple">
-              Shelter Information
-            </Title>
-            <ShelterInfo
-              formData={formData}
-              setFormData={setFormData}
-              intakeDate={intakeDate}
-              setIntakeDate={setIntakeDate}
-              isSubmitting={isSubmitting}
-              errors={errors}
-            />
-          </div>
-
-          <Divider />
-
-          <ImageFileUpload
-            images={images}
-            setImages={setImages}
-            setDeletedImages={setDeletedImages}
-          />
-
-          <Divider />
-
-          {/* CHECKBOXES */}
-          <CheckboxesInfo
-            formData={formData}
-            setFormData={setFormData}
-            isSubmitting={isSubmitting}
-          />
-
-          <Divider />
-
-          {/* DESCRIPTION */}
-          <Textarea
-            label="Description"
-            value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-            minRows={4}
-            disabled={isSubmitting}
-          />
-
-          <Group justify="flex-end" mt="md">
-            <Button variant="light" onClick={() => navigate("/animals")}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              color="purple"
-              disabled={isSubmitting}
-              leftSection={
-                isSubmitting ? <Loader size="xs" color="white" /> : null
+            {/* DESCRIPTION */}
+            <Textarea
+              label="Description"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
               }
-            >
-              {isSubmitting ? "Saving..." : "Save Changes"}
-            </Button>
-          </Group>
-        </Stack>
-      </Paper>
-    </Container>
+              minRows={4}
+              disabled={isSubmitting}
+            />
+
+            <Group justify="flex-end" mt="md">
+              <Button variant="light" onClick={() => navigate("/animals")}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                color="purple"
+                disabled={isSubmitting}
+                leftSection={
+                  isSubmitting ? <Loader size="xs" color="white" /> : null
+                }
+              >
+                {isSubmitting ? "Saving..." : "Save Changes"}
+              </Button>
+            </Group>
+          </Stack>
+        </Paper>
+      </Container>
+
+      <NotificationModal
+        message={notificationMessage}
+        isOpen={notificationOpen}
+        setIsOpen={setNotificationOpen}
+        type={"error"}
+      />
+    </>
   );
 }

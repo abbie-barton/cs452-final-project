@@ -26,7 +26,7 @@ export class DatabaseStack extends Stack {
 
     // VPC for database + lambdas
     this.vpc = new Vpc(this, "AnimalVpc", {
-      maxAzs: 2,
+      natGateways: 0,
       subnetConfiguration: [
         {
           name: "public",
@@ -34,7 +34,7 @@ export class DatabaseStack extends Stack {
         },
         {
           name: "private",
-          subnetType: SubnetType.PRIVATE_WITH_EGRESS,
+          subnetType: SubnetType.PRIVATE_ISOLATED,
         },
       ],
     });
@@ -54,13 +54,13 @@ export class DatabaseStack extends Stack {
         version: MysqlEngineVersion.VER_8_0,
       }),
       vpc: this.vpc,
-      vpcSubnets: { subnetType: SubnetType.PUBLIC },
+      vpcSubnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
+      publiclyAccessible: false,
       credentials: {
         username: "admin",
         password: this.dbSecret.secretValueFromJson("password"),
       },
       instanceType: InstanceType.of(InstanceClass.T3, InstanceSize.MICRO),
-      publiclyAccessible: true,
       allocatedStorage: 20,
       databaseName: "animal_shelter",
     });

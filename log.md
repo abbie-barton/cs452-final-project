@@ -12,5 +12,8 @@
 | 12/05/25    | 2     | Finish S3 integration, clean up code, pagination |
 | 12/06/25    | 2     | Add error modals, preview images functionality, start on animal filtering |
 | 12/07/25    | 2     | Finish animal filtering, sidebar, start on medical record APIs |
+| 12/08/25    | 2     | Implement medical record APIs on create animal page |
+| 12/09/25    | 1.5     | Fix date picker component, implement medical record APIs on edit animal page, rework cdk to minimize cost |
+** make a way to update records on edit page? 
 
-## Total Hours: 24.5
+## Total Hours: 28
