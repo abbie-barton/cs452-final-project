@@ -1,6 +1,9 @@
 import { Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { CorsHttpMethod, HttpApi } from "aws-cdk-lib/aws-apigatewayv2";
+import {
+  CorsHttpMethod,
+  HttpApi,
+} from "aws-cdk-lib/aws-apigatewayv2";
 import { IVpc } from "aws-cdk-lib/aws-ec2";
 import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
 import { Bucket, HttpMethods } from "aws-cdk-lib/aws-s3";
@@ -21,12 +24,17 @@ export class ApiStack extends Stack {
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
-    // --------------------------------------------------
-    // HTTP API
-    // --------------------------------------------------
+    // ==============================================================
+    // 1️⃣ HTTP API WITH PROPER CORS (VERCEL + LOCALHOST)
+    // ==============================================================
+
     this.httpApi = new HttpApi(this, "animal-shelter", {
       corsPreflight: {
-        allowOrigins: ["http://localhost:3000"],
+        allowOrigins: [
+          "http://localhost:3000",
+          "https://cs452-final-project.vercel.app",
+          "*"   // optional — remove if you want to restrict later
+        ],
         allowMethods: [
           CorsHttpMethod.GET,
           CorsHttpMethod.POST,
@@ -38,13 +46,18 @@ export class ApiStack extends Stack {
       },
     });
 
-    // --------------------------------------------------
-    // S3 bucket
-    // --------------------------------------------------
+    // ==============================================================
+    // 2️⃣ S3 BUCKET WITH PROPER CORS
+    // ==============================================================
+
     const imageBucket = new Bucket(this, "AnimalImageBucket", {
       cors: [
         {
-          allowedOrigins: ["http://localhost:3000"],
+          allowedOrigins: [
+            "http://localhost:3000",
+            "https://cs452-final-project.vercel.app",
+            "*" // optional
+          ],
           allowedMethods: [
             HttpMethods.GET,
             HttpMethods.PUT,
@@ -57,9 +70,10 @@ export class ApiStack extends Stack {
       ],
     });
 
-    // --------------------------------------------------
-    // API Constructs
-    // --------------------------------------------------
+    // ==============================================================
+    // 3️⃣ API CONSTRUCTS
+    // ==============================================================
+
     new AnimalsApi(this, "AnimalsApi", {
       api: this.httpApi,
       vpc: props.vpc,
