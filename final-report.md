@@ -1,10 +1,19 @@
 # Final Report - 12/10/25
 # Project Summary
-My project is an admin portal for an animal shelter website. It handles animals and their information, and in the future users and the relationships between users and animals. 
+My project is an admin portal for an animal shelter website. It handles animals and their information, and in the future users and the relationships between users and animals.  <br/><br/>
+Deployment: https://cs452-final-project.vercel.app/animals
 # Diagrams
-Current tables supported:
-Future functionality:
-GIF:
+<img width="687" height="575" alt="Screenshot 2025-12-10 at 2 06 14 PM" src="https://github.com/user-attachments/assets/e86c91d4-09b1-4058-b366-b9eaef6713a5" /> <br/>
+
+Current tables supported: <br/>
+<img width="410" height="431" alt="Screenshot 2025-12-10 at 2 08 48 PM" src="https://github.com/user-attachments/assets/e4be5ad4-253c-4205-9933-41fc15471926" /> <br/>
+
+Future functionality: <br />
+<img width="839" height="500" alt="Screenshot 2025-12-10 at 2 11 29 PM" src="https://github.com/user-attachments/assets/b827b641-598e-4afc-aeee-f093c5b46e50" /> <br/>
+
+GIF showing add animal functionality:  <br />
+![cs452-website](https://github.com/user-attachments/assets/79d0675c-5e27-4e26-9d13-cc543d54d388) <br/>
+
 # What did you learn in this project?
 I learned a lot about AWS and how it works with a CDK. I initially created a CDK that worked well, but it cost a lot of money (about $60 per month), so I redesigned it so it has a much lower cost. I learned about how cloud technologies work, how they scale, and how they can be implemented in a small or potentially large project. I also have never done vibe coding before which I did a lot of on the frontend, and I learned that there are a lot of cool things AI can do especially if you are giving it good guidance.
 # How did you use AI to assist in building your project?
